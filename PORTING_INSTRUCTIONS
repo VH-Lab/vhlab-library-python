@@ -1,0 +1,8 @@
+## Namespace
+
+The functions/classes in in vhlab-library should live in the namespace vhlib. For example, functions should be vhlib.fun.
+
+## Testing
+
+Unittests should be created for all functions/classes.
+
