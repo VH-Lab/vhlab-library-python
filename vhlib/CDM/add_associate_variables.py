@@ -17,9 +17,9 @@ def add_associate_variables(ds, cells=None):
          raise NotImplementedError("vlt.file.custom_struct_io.loadStructArray missing")
 
     try:
-        from vlt.data import load2celllist
+        from vlt.file.load2celllist import load2celllist
     except ImportError:
-         def load2celllist(*args): raise NotImplementedError("vlt.data.load2celllist missing")
+         raise NotImplementedError("vlt.file.load2celllist missing")
 
     try:
         pathname = ds.getpathname()

@@ -10,9 +10,9 @@ def remove_associate(ds, type_):
 
     from vhlib.md import findassociate, disassociate
     try:
-        from vlt.data import load2celllist
+        from vlt.file.load2celllist import load2celllist
     except ImportError:
-         def load2celllist(*args): raise NotImplementedError("vlt.data.load2celllist missing")
+         raise NotImplementedError("vlt.file.load2celllist missing")
 
     if isinstance(type_, str):
         types = [type_]

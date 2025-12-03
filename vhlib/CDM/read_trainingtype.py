@@ -1,5 +1,4 @@
 import os
-import vhlib.CDM.training_help as th
 
 def read_trainingtype(ds, **kwargs):
     """

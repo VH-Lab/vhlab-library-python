@@ -18,8 +18,7 @@ def extractstimdirectorytimes(ds, cell, **kwargs):
 
     from vhlib.md import findassociate, associate
 
-    def getstimdirectorytime(*args, **kwargs):
-         raise NotImplementedError("getstimdirectorytime is missing")
+    from vhlib.StimDecode import getstimdirectorytime
 
     assoc_new = []
 
