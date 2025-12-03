@@ -1,1 +1,2 @@
 vhlab-toolbox-python
+numpy
