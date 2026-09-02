@@ -1,0 +1,387 @@
+# MATLAB -> Python bridge contract for the vhlib.StimDecode package.
+#
+# Every module in this package must appear here, and every MATLAB function in
+# the corresponding MATLAB folder must appear here with a `status`.
+# See PORTING_INSTRUCTIONS for the convention and the status vocabulary.
+
+project_metadata:
+  bridge_version: "1.1"
+  matlab_repository: "https://github.com/VH-Lab/vhlab-library-matlab"
+  matlab_package_path: "StimulusDecoding"
+  python_package: "vhlib.StimDecode"
+  naming_policy: "Strict MATLAB Mirror"
+  indexing_policy: "Semantic Parity (1-based for user concepts, 0-based for internal data)"
+  coverage: "10 of 20 MATLAB functions in StimulusDecoding are ported; 10 are not_yet_ported."
+  notes: >
+    The Python package name `StimDecode` abbreviates the MATLAB folder name
+    `StimulusDecoding`. The unported half of this folder is dominated by
+    functions that manipulate NewStim `stimscript` objects, which have no Python
+    equivalent yet; that is recorded per function below rather than assumed.
+
+functions:
+  - name: getstimdirectorytime
+    type: function
+    status: ported
+    matlab_path: "StimulusDecoding/getstimdirectorytime.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/StimDecode/getstimdirectorytime.py"
+    input_arguments:
+      - name: dirname
+        type_matlab: "char"
+        type_python: "str"
+      - name: WarnOnEarlyMorning
+        type_matlab: "logical (name/value pair, default 1)"
+        type_python: "bool (keyword, default True)"
+        optional: true
+      - name: EarlyMorningCutOffTime
+        type_matlab: "double (name/value pair, default 5)"
+        type_python: "float (keyword, default 5)"
+        optional: true
+      - name: ErrorIfEmpty
+        type_matlab: "logical (name/value pair, default 1)"
+        type_python: "bool (keyword, default True)"
+        optional: true
+    output_arguments:
+      - name: time
+        type_matlab: "double"
+        type_python: "float"
+    decision_log: >
+      MATLAB name/value varargin pairs become Python keyword arguments with the
+      same names and defaults. Time is seconds since midnight on the first day of
+      the experiment, as in MATLAB.
+
+  - name: read_plexon_events_txt
+    type: function
+    status: ported
+    matlab_path: "StimulusDecoding/read_plexon_events_txt.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/StimDecode/read_plexon_events_txt.py"
+    input_arguments:
+      - name: filename
+        type_matlab: "char"
+        type_python: "str"
+    output_arguments:
+      - name: events
+        type_matlab: "struct"
+        type_python: "dict"
+    decision_log: >
+      The MATLAB struct whose field names come from the file's header row becomes
+      a dict keyed by those same names.
+
+  - name: read_stimtimes_plexon_txt
+    type: function
+    status: ported
+    matlab_path: "StimulusDecoding/read_stimtimes_plexon_txt.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/StimDecode/read_stimtimes_plexon_txt.py"
+    input_arguments:
+      - name: dirname
+        type_matlab: "char"
+        type_python: "str"
+    output_arguments:
+      - name: stimids
+        type_matlab: "double array"
+        type_python: "np.ndarray"
+      - name: stimtimes
+        type_matlab: "double array"
+        type_python: "np.ndarray"
+      - name: frametimes
+        type_matlab: "cell array of double array"
+        type_python: "list of np.ndarray"
+    decision_log: >
+      Reads 'stimtimes_plexon.txt'. Depends on a .mat loader from
+      vlt.file.dirstruct that is not yet available; the module raises
+      NotImplementedError from a local stub until it is. See vltMissingFunctions.md.
+
+  - name: read_stimtimes_txt
+    type: function
+    status: ported
+    matlab_path: "StimulusDecoding/read_stimtimes_txt.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/StimDecode/read_stimtimes_txt.py"
+    input_arguments:
+      - name: dirname
+        type_matlab: "char"
+        type_python: "str"
+      - name: filename
+        type_matlab: "char (optional, default 'stimtimes.txt')"
+        type_python: "str (default 'stimtimes.txt')"
+        optional: true
+    output_arguments:
+      - name: stimids
+        type_matlab: "double array"
+        type_python: "np.ndarray"
+      - name: stimtimes
+        type_matlab: "double array"
+        type_python: "np.ndarray"
+      - name: frametimes
+        type_matlab: "cell array of double array"
+        type_python: "list of np.ndarray"
+    decision_log: >
+      MATLAB's nargin check for the optional filename becomes a Python default
+      argument with the same value.
+
+  - name: repairoverflow_stimtimes_txt
+    type: function
+    status: ported
+    matlab_path: "StimulusDecoding/repairoverflow_stimtimes_txt.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/StimDecode/repairoverflow_stimtimes_txt.py"
+    input_arguments:
+      - name: dirname
+        type_matlab: "char"
+        type_python: "str"
+      - name: skiplineafteroverflow
+        type_matlab: "double (default 0)"
+        type_python: "int (default 0)"
+        optional: true
+      - name: stimtimes_file
+        type_matlab: "char (default 'stimtimes.txt')"
+        type_python: "str (default 'stimtimes.txt')"
+        optional: true
+      - name: stims_mat_file
+        type_matlab: "char (default 'stims.mat')"
+        type_python: "str (default 'stims.mat')"
+        optional: true
+      - name: goodframes
+        type_matlab: "double (default 10)"
+        type_python: "int (default 10)"
+        optional: true
+    output_arguments: []
+    decision_log: >
+      Repairs stimtimes.txt when numstims > 255. Depends on a .mat loader from
+      vlt.file.dirstruct that is not yet available; the module raises
+      NotImplementedError from a local stub until it is.
+
+  - name: stimscriptgraph
+    type: function
+    status: ported
+    matlab_path: "StimulusDecoding/stimscriptgraph.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/StimDecode/stimscriptgraph.py"
+    input_arguments:
+      - name: dirname
+        type_matlab: "char"
+        type_python: "str"
+      - name: plotit
+        type_matlab: "logical (optional)"
+        type_python: "bool (default False)"
+        optional: true
+    output_arguments:
+      - name: stims
+        type_matlab: "double array"
+        type_python: "np.ndarray"
+      - name: stimlabels
+        type_matlab: "cell array of char"
+        type_python: "list of str"
+    decision_log: >
+      Plotting is opt-in in both languages. The MATLAB figure call has no Python
+      equivalent wired up yet; `plotit` is accepted and the data outputs are
+      authoritative.
+
+  - name: vhinterconnect_decode
+    type: function
+    status: ported
+    matlab_path: "StimulusDecoding/vhinterconnect_decode.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/StimDecode/vhinterconnect_decode.py"
+    input_arguments:
+      - name: time
+        type_matlab: "double array"
+        type_python: "np.ndarray"
+      - name: input
+        python_name: input_sig
+        type_matlab: "uint16 array"
+        type_python: "np.ndarray"
+      - name: polarity
+        type_matlab: "double array (9 elements, optional)"
+        type_python: "np.ndarray | None (9 elements)"
+        optional: true
+    output_arguments:
+      - name: out
+        type_matlab: "struct with fields StimTrigger, FrameTriggerRaw, ..."
+        type_python: "dict with the same keys"
+    decision_log: >
+      The MATLAB argument `input` shadows a Python builtin, so the Python
+      parameter is `input_sig`. The returned struct becomes a dict with identical
+      field names, because write_interconnect_textfiles consumes it by name.
+
+  - name: vhlabcorrectmti
+    type: function
+    status: ported
+    matlab_path: "StimulusDecoding/vhlabcorrectmti.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/StimDecode/vhlabcorrectmti.py"
+    input_arguments:
+      - name: mti
+        type_matlab: "cell array of struct"
+        type_python: "list of dict"
+      - name: filename
+        type_matlab: "char"
+        type_python: "str"
+      - name: globaltime
+        type_matlab: "double (optional, default 0)"
+        type_python: "int (default 0)"
+        optional: true
+    output_arguments:
+      - name: mti2
+        type_matlab: "cell array of struct"
+        type_python: "list of dict"
+      - name: starttime
+        type_matlab: "double"
+        type_python: "float"
+    decision_log: >
+      NewStim MTI records are plain structs, so they port to dicts without needing
+      the stimscript object model that blocks getstimscript and friends.
+
+  - name: write_interconnect_textfiles
+    type: function
+    status: ported
+    matlab_path: "StimulusDecoding/write_interconnect_textfiles.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/StimDecode/write_interconnect_textfiles.py"
+    input_arguments:
+      - name: dirname
+        type_matlab: "char"
+        type_python: "str"
+      - name: out
+        type_matlab: "struct (output of vhinterconnect_decode)"
+        type_python: "dict (output of vhinterconnect_decode)"
+    output_arguments: []
+    decision_log: >
+      Exact match; consumes the dict produced by vhinterconnect_decode.
+
+  - name: write_stimtimes_txt
+    type: function
+    status: ported
+    matlab_path: "StimulusDecoding/write_stimtimes_txt.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/StimDecode/write_stimtimes_txt.py"
+    input_arguments:
+      - name: dirname
+        type_matlab: "char"
+        type_python: "str"
+      - name: stimids
+        type_matlab: "double array"
+        type_python: "list | np.ndarray"
+      - name: stimtimes
+        type_matlab: "double array"
+        type_python: "list | np.ndarray"
+      - name: frametimes
+        type_matlab: "cell array of double array (optional)"
+        type_python: "list of array | None"
+        optional: true
+      - name: filename
+        type_matlab: "char (optional)"
+        type_python: "str | None"
+        optional: true
+    output_arguments: []
+    decision_log: >
+      MATLAB's nargin-dependent default filename is preserved: 'stimontimes.txt'
+      when no frametimes are given, 'stimtimes.txt' otherwise. Refuses to
+      overwrite an existing file, as MATLAB does.
+
+  # ---- Not yet ported ----------------------------------------------------
+
+  - name: check_stimid_errors
+    type: function
+    status: not_yet_ported
+    matlab_path: "StimulusDecoding/check_stimid_errors.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Diagnostic for stimid bit glitches. No Python caller needs it yet; it is a
+      self-contained numeric function and should be straightforward when one does.
+
+  - name: check_stimtimes_txt_vs_stims_mat
+    type: function
+    status: not_yet_ported
+    matlab_path: "StimulusDecoding/check_stimtimes_txt_vs_stims_mat.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Compares stimtimes.txt against stims.mat. Blocked on reading the NewStim
+      stimscript stored in stims.mat, which has no Python representation yet.
+
+  - name: findtransitionsSGSBL
+    type: function
+    status: not_yet_ported
+    matlab_path: "StimulusDecoding/findtransitionsSGSBL.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Finds colour transitions for STOCHASTICGRIDSTIM / BLINKINGSTIM. Blocked on
+      the NewStim stimscript object model.
+
+  - name: fix_stimtimes_txt_glitch
+    type: function
+    status: not_yet_ported
+    matlab_path: "StimulusDecoding/fix_stimtimes_txt_glitch.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Repairs a VHTrig/USB-1208FS trigger glitch. Related to the ported
+      repairoverflow_stimtimes_txt but a distinct failure mode; not yet needed
+      downstream.
+
+  - name: frametimesraw2frametimes
+    type: function
+    status: not_yet_ported
+    matlab_path: "StimulusDecoding/frametimesraw2frametimes.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Splits a raw frame-trigger list by stimulus. Pure array manipulation with no
+      MATLAB-only dependency; a good next candidate.
+
+  - name: getstimscript
+    type: function
+    status: not_yet_ported
+    matlab_path: "StimulusDecoding/getstimscript.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Loads the NewStim `stimscript` object ('saveScript') and MTI from stims.mat.
+      Blocked on a Python port of NewStim; the MTI half of its output is already
+      reachable through vhlabcorrectmti.
+
+  - name: getstimscriptparameters
+    type: function
+    status: not_yet_ported
+    matlab_path: "StimulusDecoding/getstimscriptparameters.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Reads parameters off a NewStim stimscript. Blocked on the same object model
+      as getstimscript.
+
+  - name: getstimscriptproperties
+    type: function
+    status: not_yet_ported
+    matlab_path: "StimulusDecoding/getstimscriptproperties.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Note that the MATLAB file getstimscriptproperties.m declares a function
+      named `stimscriptproperties`, not matching its filename. Blocked on the
+      NewStim object model; if ported, resolve the name mismatch first.
+
+  - name: getstimscriptsync
+    type: function
+    status: not_yet_ported
+    matlab_path: "StimulusDecoding/getstimscriptsync.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      getstimscript plus clock synchronization. Blocked on the NewStim object
+      model.
+
+  - name: mti_from_stimtimes_txt
+    type: function
+    status: not_yet_ported
+    matlab_path: "StimulusDecoding/mti_from_stimtimes_txt.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Rebuilds an MTI when stims.mat is lost. Takes a stimscript as input, so it
+      is blocked on the NewStim object model.

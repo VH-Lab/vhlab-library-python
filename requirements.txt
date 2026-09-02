@@ -1,2 +1,3 @@
 vhlab-toolbox-python
 numpy
+pyyaml

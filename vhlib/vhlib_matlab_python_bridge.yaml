@@ -1,0 +1,217 @@
+# MATLAB -> Python bridge contract for the top-level vhlib package.
+#
+# This file records two things that no per-subpackage bridge can: the mapping
+# between MATLAB folder names and Python subpackage names, and what has been
+# decided about the parts of vhlab-library-matlab that have no Python presence
+# at all. Function-level entries live in the per-subpackage bridge files listed
+# under `subpackages`.
+#
+# See PORTING_INSTRUCTIONS for the convention and the status vocabulary.
+
+project_metadata:
+  bridge_version: "1.1"
+  matlab_repository: "https://github.com/VH-Lab/vhlab-library-matlab"
+  matlab_last_sync_hash: "cca1cce"
+  python_package: "vhlib"
+  naming_policy: "Strict MATLAB Mirror"
+  indexing_policy: "Semantic Parity (1-based for user concepts, 0-based for internal data)"
+  coverage: >
+    1120 .m files in vhlab-library-matlab; 42 of them are ported, into 31 Python
+    modules. Every one of the 1120 is accounted for below, per function in the
+    three ported areas and per area everywhere else.
+
+# Status vocabulary used by every bridge file in this repository.
+status_vocabulary:
+  ported: "A Python implementation exists and is believed equivalent; any divergence is in its decision_log."
+  partially_ported: "Used for an area: some functions in it are ported and some are not. Never used for a single function — a function that diverges is `ported` with the divergence in its decision_log."
+  not_yet_ported: "No Python implementation, but one would be wanted. The decision_log says what blocks it or what would motivate it."
+  not_applicable: "Deliberately not to be ported. The decision_log says why."
+  ported_elsewhere: "The Python implementation lives in another package (vhlab-toolbox-python, NDI-python, ...). The decision_log names it."
+  deprecated_in_matlab: "Superseded on the MATLAB side; do not port."
+  does_not_exist: "The Python function has no MATLAB original. The decision_log says where it came from."
+
+# Python subpackage <- MATLAB folder. The Python names are abbreviations; this
+# table is the only place that decodes them.
+subpackages:
+  - python_package: "vhlib.CDM"
+    python_path: "vhlib/CDM"
+    matlab_path: "AnalysisTools/CellDatabaseManagement"
+    bridge_file: "vhlib/CDM/vhlib_matlab_python_bridge.yaml"
+    coverage: "23 of 23 MATLAB functions ported."
+
+  - python_package: "vhlib.StimDecode"
+    python_path: "vhlib/StimDecode"
+    matlab_path: "StimulusDecoding"
+    bridge_file: "vhlib/StimDecode/vhlib_matlab_python_bridge.yaml"
+    coverage: "10 of 20 MATLAB functions ported."
+
+  - python_package: "vhlib.md"
+    python_path: "vhlib/md"
+    matlab_path: "AnalysisTools/MeasuredData"
+    bridge_file: "vhlib/md/vhlib_matlab_python_bridge.yaml"
+    coverage: >
+      The MEASUREDDATA associate machinery and one general routine; 9 of 224
+      .m files. The rest is accounted for per area in that file.
+
+# Every MATLAB area, including the three above, with its decision.
+coverage_areas:
+  - matlab_path: "AnalysisTools/CellDatabaseManagement"
+    matlab_file_count: 23
+    status: ported
+    python_path: "vhlib/CDM"
+    decision_log: >
+      Fully ported. Per-function detail in vhlib/CDM/vhlib_matlab_python_bridge.yaml.
+
+  - matlab_path: "StimulusDecoding"
+    matlab_file_count: 20
+    status: partially_ported
+    python_path: "vhlib/StimDecode"
+    decision_log: >
+      The file-reading and file-writing half is ported. The unported half needs
+      the NewStim `stimscript` object model, which has no Python equivalent.
+      Per-function detail in vhlib/StimDecode/vhlib_matlab_python_bridge.yaml.
+
+  - matlab_path: "AnalysisTools/MeasuredData"
+    matlab_file_count: 224
+    status: partially_ported
+    python_path: "vhlib/md"
+    decision_log: >
+      The MEASUREDDATA base class's associate machinery is ported because the
+      CDM functions need it. The analysis-object hierarchy and the data-bearing
+      subclasses are not. Per-function and per-subfolder detail in
+      vhlib/md/vhlib_matlab_python_bridge.yaml.
+
+  - matlab_path: "AnalysisTools/ResponsesFitsIndexesPlotting"
+    matlab_file_count: 96
+    status: not_yet_ported
+    decision_log: >
+      HIGHEST-PRIORITY GAP. Response statistics, tuning-curve fits and index
+      calculations. `response_stats/neural_response_significance.m` is called by
+      ndi.app.oridirtuning and so is needed by the NDI-python port of that app;
+      it has no Python counterpart here or anywhere else in the Python family.
+      Locating it cost a search across four repositories, which is the concrete
+      failure this bridge convention exists to prevent. Port
+      neural_response_significance (with neural_maxrate_variability and
+      resampparams_MC, which sit alongside it) before the rest of this folder.
+
+  - matlab_path: "SpikeDataExtraction"
+    matlab_file_count: 388
+    status: not_applicable
+    decision_log: >
+      Spike importers and analog-input analysis for specific acquisition rigs
+      (Intan, Spike2/CED, LabView, Willow, Plexon), plus the vhNDISpikeSorter
+      MATLAB app and 267 files of legacy importer classes under
+      SpikeImporters/OldSpikeImporters. Acquisition and spike extraction are
+      NDI's job on the Python side: reading these formats belongs in NDI-python
+      readers, not in a translation of this folder. Revisit only if a specific
+      rig's format has no NDI reader. Note that this is the second largest area
+      in the repository, so a "not ported" here is a decision, not an oversight.
+
+  - matlab_path: "AnalysisTools/intrinsic"
+    matlab_file_count: 64
+    status: not_yet_ported
+    decision_log: >
+      Intrinsic-signal imaging analysis. Self-contained and portable, but no
+      Python caller needs it yet.
+
+  - matlab_path: "AnalysisTools/tpca"
+    matlab_file_count: 30
+    status: not_yet_ported
+    decision_log: >
+      Two-photon calcium analysis. As with intrinsic: portable, but not yet
+      needed. Overlaps in purpose with NDI calculators; check there before
+      porting.
+
+  - matlab_path: "AnalysisTools/ElectrodeUnitAnalysis"
+    matlab_file_count: 29
+    status: not_yet_ported
+    decision_log: >
+      Unit-level electrode analysis. Depends on the MEASUREDDATA subclasses that
+      vhlib.md does not port, so it is blocked on that decision.
+
+  - matlab_path: "AnalysisTools/csdtools"
+    matlab_file_count: 28
+    status: not_yet_ported
+    decision_log: >
+      Current source density analysis. Numeric and portable; no Python caller yet.
+
+  - matlab_path: "AnalysisTools/csdtools_dennis"
+    matlab_file_count: 16
+    status: not_applicable
+    decision_log: >
+      A personal variant of csdtools. Port csdtools if CSD analysis is needed;
+      this fork is not the version of record.
+
+  - matlab_path: "AnalysisTools/Model_Demos"
+    matlab_file_count: 11
+    status: not_applicable
+    decision_log: >
+      Demonstration scripts for models, not library functions.
+
+  - matlab_path: "AnalysisTools/Tutorials"
+    matlab_file_count: 6
+    status: not_applicable
+    decision_log: >
+      Teaching material for the MATLAB library. If Python tutorials are wanted
+      they should be written against the Python API, not translated.
+
+  - matlab_path: "AnalysisTools/histology"
+    matlab_file_count: 2
+    status: not_yet_ported
+    decision_log: >
+      Two histology helpers. No Python caller yet.
+
+  - matlab_path: "AnalysisTools/voltage_analysis"
+    matlab_file_count: 1
+    status: not_yet_ported
+    decision_log: >
+      A single voltage-analysis helper. No Python caller yet.
+
+  - matlab_path: "AnalysisTools/z_old_steve_gradschool"
+    matlab_file_count: 18
+    status: not_applicable
+    decision_log: >
+      Archived personal code, marked as old by its own folder name. Do not port.
+
+  - matlab_path: "legacy_code"
+    matlab_file_count: 69
+    status: not_applicable
+    decision_log: >
+      FitzLab tools and other superseded code, marked as legacy by its own folder
+      name. Do not port.
+
+  - matlab_path: "z_immature"
+    matlab_file_count: 93
+    status: not_applicable
+    decision_log: >
+      The sampleAPI and slicetools experiments, marked as immature by their own
+      folder name. sampleAPI in particular is an early ancestor of NDI's data
+      model and is superseded by NDI itself. Do not port.
+
+  - matlab_path: "conversion"
+    matlab_file_count: 1
+    status: not_applicable
+    decision_log: >
+      fitzlab_stevephys2vhlab.m, a one-off conversion of FitzLab-era data into
+      the VH lab layout. A historical migration, not library functionality.
+
+  - matlab_path: "vhlab_library_matlab_Init.m"
+    matlab_file_count: 1
+    status: not_applicable
+    decision_log: >
+      MATLAB path setup. Python uses package imports; there is nothing to port.
+
+# Functions in other repositories' MATLAB trees are out of scope here, but this
+# records what is known to be needed from this repository by a Python port
+# elsewhere, so the question is not re-researched.
+downstream_requirements:
+  - requested_by: "NDI-python port of ndi.app.oridirtuning"
+    matlab_function: "neural_response_significance"
+    matlab_path: "AnalysisTools/ResponsesFitsIndexesPlotting/response_stats/neural_response_significance.m"
+    status: not_yet_ported
+    decision_log: >
+      NDI-matlab calls a handful of vhlab-library-matlab functions directly; the
+      list is maintained by hand in
+      NDI-matlab/src/ndi/docs/developer_notes/vhlabLibraryMatlab.md. That list
+      should be reconciled with this file so the requirement is recorded on both
+      sides rather than only in NDI-matlab's notes.
