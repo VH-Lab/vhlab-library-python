@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vhlab-library-python"
+version = "0.1.0"
+description = "Python port of vhlab-library-matlab"
+requires-python = ">=3.10"
+dependencies = [
+    # Mirrors requirements.txt, which stays for anyone installing that way.
+    "vhlab-toolbox-python @ git+https://github.com/VH-Lab/vhlab-toolbox-python",
+    "numpy",
+    "scipy",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.urls]
+Repository = "https://github.com/VH-Lab/vhlab-library-python"
+
+[tool.setuptools.packages.find]
+include = ["vhlib*"]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
