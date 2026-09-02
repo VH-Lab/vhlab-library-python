@@ -31,6 +31,28 @@ class MeasuredData:
         self.description_brief = desc_brief
         self.associates = []
 
+    def get_intervals(self):
+        """
+        Returns the intervals over which the data was measured.
+
+        INTER = GET_INTERVALS(MEASDATA)
+
+        :return: the Nx2 intervals of this object
+        """
+        return self.intervals
+
+    def set_intervals(self, newintervals):
+        """
+        Sets the intervals over which the data was measured, returning self.
+
+        NEWMEASDATA = SET_INTERVALS(MEASDATA, NEWINTERVALS)
+
+        :param newintervals: Nx2 list or array of intervals
+        :return: self, with the new intervals
+        """
+        self.intervals = newintervals
+        return self
+
     def associate(self, type_or_struct, owner=None, data=None, description=None):
         """
         Associates some data with the MEASUREDDATA object and returns the object (self).

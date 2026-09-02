@@ -124,6 +124,40 @@ def disassociate(md, indices):
     else:
         raise ValueError("Object does not have disassociate method and is not a dict")
 
+def get_intervals(md):
+    """
+    Returns the intervals of MEASUREDDATA object MD, a dictionary (struct), or a
+    struct loaded from a .mat file.
+    Wrapper for md.get_intervals() or field access.
+    """
+    if hasattr(md, 'get_intervals'):
+        return md.get_intervals()
+    elif isinstance(md, dict):
+        if 'intervals' not in md:
+            raise ValueError("dict has no 'intervals' field")
+        return md['intervals']
+    elif hasattr(md, 'intervals'):
+        return md.intervals
+    else:
+        raise ValueError("Object does not have get_intervals method and has no intervals field")
+
+def set_intervals(md, newintervals):
+    """
+    Sets the intervals of MEASUREDDATA object MD, a dictionary (struct), or a
+    struct loaded from a .mat file, and returns it.
+    Wrapper for md.set_intervals(newintervals) or field assignment.
+    """
+    if hasattr(md, 'set_intervals'):
+        return md.set_intervals(newintervals)
+    elif isinstance(md, dict):
+        md['intervals'] = newintervals
+        return md
+    elif hasattr(md, 'intervals'):
+        md.intervals = newintervals
+        return md
+    else:
+        raise ValueError("Object does not have set_intervals method and has no intervals field")
+
 def associate_all(cells, assoclist):
     """
     Associates a list of associates to a list of cells.

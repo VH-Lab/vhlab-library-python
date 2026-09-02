@@ -13,18 +13,20 @@ project_metadata:
   naming_policy: "Strict MATLAB Mirror"
   indexing_policy: "Semantic Parity (1-based for user concepts, 0-based for internal data)"
   coverage: >
-    9 of the 224 .m files under AnalysisTools/MeasuredData are ported: the
-    MEASUREDDATA constructor plus seven of its associate methods, and one
-    general routine. The analysis-object hierarchy and the data-bearing
-    subclasses are not. See `coverage_areas` for the per-area decisions.
+    11 of the 224 .m files under AnalysisTools/MeasuredData are ported: the
+    MEASUREDDATA constructor, seven of its associate methods, its two interval
+    accessors, and one general routine. The analysis-object hierarchy and the
+    data-bearing subclasses are not. See `coverage_areas` for the per-area
+    decisions.
   notes: >
     The Python package name `md` abbreviates the MATLAB folder name
     `MeasuredData`. MATLAB's `@measureddata` class folder becomes the single
     module vhlib/md/measureddata.py holding class `MeasuredData` (PEP 8 class
     name; the MATLAB call name is preserved as the module name). Four associate
-    methods are ALSO exposed as module-level functions in vhlib/md/__init__.py
-    that accept either a MeasuredData instance or a plain dict, because cells
-    loaded from .mat files arrive as dicts, not objects.
+    methods and the two interval accessors are ALSO exposed as module-level
+    functions in vhlib/md/__init__.py that accept either a MeasuredData instance
+    or a plain dict, because cells loaded from .mat files arrive as dicts, not
+    objects.
 
 functions:
   - name: measureddata
@@ -252,9 +254,16 @@ functions:
     matlab_last_sync_hash: "cca1cce"
     python_path: null
     decision_log: >
-      The base-class method errors in MATLAB; the real implementations live in
-      the subclasses (@doubledata, @spikedata), which are not ported. Port this
-      together with whichever subclass is needed first.
+      The base class returns empty data and only checks the requested interval
+      against the object's own record; the implementations that return data live
+      in the subclasses (@doubledata, @spikedata), which are not ported. The
+      caller that wants it, NDI-matlab's
+      +ndi/+setup/+conv/+vhlab/importMeasuredDataCells.m:61, calls
+      get_data(cells{j}, [t0 t1]) on cells read out of a VH lab experiment file,
+      so it reaches a data-bearing subclass rather than this method
+      (vhlab-library-python#6, Tier 2). Porting the base-class bounds check alone
+      would return nothing that caller can use; port it together with whichever
+      subclass is decided on.
 
   - name: get_memory
     type: method
@@ -269,25 +278,59 @@ functions:
   - name: get_intervals
     type: method
     class: measureddata
-    status: not_yet_ported
+    status: ported
     matlab_path: "AnalysisTools/MeasuredData/@measureddata/get_intervals.m"
     matlab_last_sync_hash: "cca1cce"
-    python_path: null
+    python_path: "vhlib/md/measureddata.py"
+    python_name: "vhlib.md.MeasuredData.get_intervals / vhlib.md.get_intervals"
+    input_arguments:
+      - name: measData
+        type_matlab: "measureddata"
+        type_python: "MeasuredData (method) | MeasuredData, dict or .mat struct (function)"
+    output_arguments:
+      - name: inter
+        type_matlab: "Nx2 double"
+        type_python: "np.ndarray | list of [t0, t1]"
     decision_log: >
-      Accessor. Python code reads the `intervals` attribute directly; add the
-      method if a caller ported from MATLAB needs the exact call name.
+      A caller ported from MATLAB now needs the exact call name, which is what
+      this entry previously said it was waiting for: NDI-matlab's
+      +ndi/+setup/+conv/+vhlab/importMeasuredDataCells.m:23 calls
+      get_intervals(cells{i}) to match a cell's measured intervals against the
+      epochs of an NDI probe (vhlab-library-python#6, Tier 2). Exposed both as a
+      method and, like findassociate and its neighbours, as a module-level
+      function in vhlib/md/__init__.py, because cells read out of a VH lab
+      experiment file arrive as dicts or scipy mat_structs rather than as
+      MeasuredData objects; the function accepts all three and reads the
+      `intervals` field however that object spells it.
 
   - name: set_intervals
     type: method
     class: measureddata
-    status: not_yet_ported
+    status: ported
     matlab_path: "AnalysisTools/MeasuredData/@measureddata/set_intervals.m"
     matlab_last_sync_hash: "cca1cce"
-    python_path: null
+    python_path: "vhlib/md/measureddata.py"
+    python_name: "vhlib.md.MeasuredData.set_intervals / vhlib.md.set_intervals"
+    input_arguments:
+      - name: measData
+        type_matlab: "measureddata"
+        type_python: "MeasuredData (method) | MeasuredData, dict or .mat struct (function)"
+      - name: newintervals
+        type_matlab: "Nx2 double"
+        type_python: "np.ndarray | list of [t0, t1]"
+    output_arguments:
+      - name: newMeasData
+        type_matlab: "measureddata"
+        type_python: "MeasuredData (self), the dict, or the struct"
     decision_log: >
-      Mutator. Python code assigns the `intervals` attribute directly. Note that
-      the MATLAB version validates the Nx2 shape; the Python constructor does
-      that validation but attribute assignment does not.
+      Ported alongside get_intervals so the pair is symmetric; MATLAB keeps it
+      only so subclasses can write the parent's field, which Python does not
+      need, but a caller ported from MATLAB will still spell it this way.
+      Follows the class's existing value-semantics decision: it mutates and
+      returns self rather than returning a copy, as associate and disassociate
+      do. Note that MATLAB's set_intervals does NOT validate the Nx2 shape — an
+      earlier version of this entry claimed it did — and neither does this port;
+      only the constructor validates, in both languages.
 
   - name: get_description_brief
     type: method
