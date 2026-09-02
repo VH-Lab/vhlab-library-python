@@ -1,0 +1,524 @@
+# MATLAB -> Python bridge contract for the vhlib.CDM package.
+#
+# Every module in this package must appear here, and every MATLAB function in
+# the corresponding MATLAB folder must appear here with a `status`.
+# See PORTING_INSTRUCTIONS for the convention and the status vocabulary.
+
+project_metadata:
+  bridge_version: "1.1"
+  matlab_repository: "https://github.com/VH-Lab/vhlab-library-matlab"
+  matlab_package_path: "AnalysisTools/CellDatabaseManagement"
+  python_package: "vhlib.CDM"
+  naming_policy: "Strict MATLAB Mirror"
+  indexing_policy: "Semantic Parity (1-based for user concepts, 0-based for internal data)"
+  coverage: "23 of 23 MATLAB functions in AnalysisTools/CellDatabaseManagement are ported."
+  notes: >
+    The Python package name `CDM` abbreviates the MATLAB folder name
+    `CellDatabaseManagement`. MATLAB functions whose only purpose is to carry
+    help text for a data file (testdirinfo, trainingtype, unitquality_channelshift,
+    ...) are grouped into shared Python modules rather than getting one module
+    each; `python_path` records where each one landed.
+
+functions:
+  - name: add_associate_variables
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/add_associate_variables.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/add_associate_variables.py"
+    input_arguments:
+      - name: ds
+        type_matlab: "dirstruct"
+        type_python: "vlt.file.dirstruct.dirstruct"
+      - name: cells
+        type_matlab: "cell array (varargin)"
+        type_python: "list | None"
+        optional: true
+    output_arguments:
+      - name: cells
+        type_matlab: "cell array (varargout)"
+        type_python: "list"
+    decision_log: >
+      MATLAB's two calling forms (save-to-disk with one argument, return-modified
+      with two) become a single Python function with an optional `cells` argument,
+      matching the MATLAB semantics: cells are saved back to disk only when `cells`
+      is omitted.
+
+  - name: add_testdir_info
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/add_testdir_info.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/add_testdir_info.py"
+    input_arguments:
+      - name: ds
+        type_matlab: "dirstruct"
+        type_python: "vlt.file.dirstruct.dirstruct"
+      - name: cells
+        type_matlab: "cell array"
+        type_python: "list | None"
+        optional: true
+      - name: cellnames
+        type_matlab: "cell array of char"
+        type_python: "list of str | None"
+        optional: true
+    output_arguments:
+      - name: assoc
+        type_matlab: "struct array"
+        type_python: "list of dict"
+      - name: cells
+        type_matlab: "cell array"
+        type_python: "list"
+    decision_log: >
+      Exact match. MATLAB struct arrays of associates become lists of dicts
+      throughout this package.
+
+  - name: associate_variables_txt
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/associate_variables_txt.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/associate_variables_txt.py"
+    input_arguments: []
+    output_arguments: []
+    decision_log: >
+      Help-only function documenting the 'associate_variables.txt' file format.
+      The MATLAB help comment becomes the Python docstring; calling the function
+      prints it, preserving the MATLAB behaviour of `associate_variables_txt` at
+      the prompt.
+
+  - name: cellname2date
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/cellname2date.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/cellname2date.py"
+    input_arguments:
+      - name: cellname
+        type_matlab: "char"
+        type_python: "str"
+    output_arguments:
+      - name: datestr
+        type_matlab: "char"
+        type_python: "str"
+    decision_log: >
+      Exact match. Note that `vhlib/CDM/cellname2nameref.py` carries a second,
+      private copy of this function so the module can be imported standalone;
+      `vhlib.CDM.cellname2date` re-exports this one, which is authoritative.
+
+  - name: cellname2nameref
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/cellname2nameref.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/cellname2nameref.py"
+    input_arguments:
+      - name: cellname
+        type_matlab: "char"
+        type_python: "str"
+    output_arguments:
+      - name: nameref
+        type_matlab: "struct with fields name, ref"
+        type_python: "dict with keys 'name', 'ref'"
+      - name: index
+        type_matlab: "double"
+        type_python: "int"
+      - name: datestr
+        type_matlab: "char"
+        type_python: "str"
+    decision_log: >
+      The MATLAB nameref struct becomes a dict. `index` and `ref` keep their
+      MATLAB values verbatim: they are user-facing record numbers, not array
+      offsets, so no 1-based to 0-based shift is applied.
+
+  - name: extractstimdirectorytimes
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/extractstimdirectorytimes.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/extractstimdirectorytimes.py"
+    input_arguments:
+      - name: ds
+        type_matlab: "dirstruct"
+        type_python: "vlt.file.dirstruct.dirstruct"
+      - name: cell
+        type_matlab: "measureddata"
+        type_python: "dict | vhlib.md.MeasuredData"
+      - name: ErrorIfEmptyTestData
+        type_matlab: "logical (name/value pair, default 1)"
+        type_python: "bool (keyword, default True)"
+        optional: true
+      - name: WarnOnEarlyMorning
+        type_matlab: "logical (name/value pair, default 1)"
+        type_python: "bool (keyword, default True)"
+        optional: true
+      - name: EarlyMorningCutOffTime
+        type_matlab: "double (name/value pair, default 5)"
+        type_python: "float (keyword, default 5)"
+        optional: true
+      - name: ErrorIfEmpty
+        type_matlab: "logical (name/value pair, default 1)"
+        type_python: "bool (keyword, default True)"
+        optional: true
+    output_arguments:
+      - name: cell
+        type_matlab: "measureddata"
+        type_python: "dict | vhlib.md.MeasuredData"
+      - name: assoc
+        type_matlab: "struct array"
+        type_python: "list of dict"
+    decision_log: >
+      MATLAB name/value varargin pairs become Python keyword arguments with the
+      same names and defaults.
+
+  - name: filter_by_index
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/filter_by_index.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/filter_by_index.py"
+    input_arguments:
+      - name: cells
+        type_matlab: "cell array"
+        type_python: "list"
+      - name: cellnames
+        type_matlab: "cell array of char"
+        type_python: "list of str"
+      - name: minindex
+        type_matlab: "double"
+        type_python: "int"
+      - name: maxindex
+        type_matlab: "double"
+        type_python: "int"
+    output_arguments:
+      - name: cells
+        type_matlab: "cell array"
+        type_python: "list"
+      - name: cellnames
+        type_matlab: "cell array of char"
+        type_python: "list of str"
+      - name: incl
+        type_matlab: "double array (1-based positions)"
+        type_python: "list of int (0-based positions)"
+    decision_log: >
+      `incl` indexes into the returned lists, so it is internal data and follows
+      Python 0-based indexing. `minindex`/`maxindex` are user-facing cluster
+      index numbers and are unchanged.
+
+  - name: filter_by_quality
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/filter_by_quality.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/filter_by_quality.py"
+    input_arguments:
+      - name: ds
+        type_matlab: "dirstruct"
+        type_python: "vlt.file.dirstruct.dirstruct"
+      - name: cells
+        type_matlab: "cell array"
+        type_python: "list"
+      - name: cellnames
+        type_matlab: "cell array of char"
+        type_python: "list of str"
+      - name: cellinfo
+        type_matlab: "struct array"
+        type_python: "list of dict"
+    output_arguments:
+      - name: cells
+        type_matlab: "cell array"
+        type_python: "list"
+      - name: cellnames
+        type_matlab: "cell array of char"
+        type_python: "list of str"
+      - name: I
+        type_matlab: "double array (1-based positions)"
+        type_python: "list of int (0-based positions)"
+    decision_log: >
+      `cellinfo` is the output of read_unitquality. Index output follows Python
+      0-based indexing, as in filter_by_index.
+
+  - name: filter_by_reference
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/filter_by_reference.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/filter_by_reference.py"
+    input_arguments:
+      - name: cells
+        type_matlab: "cell array"
+        type_python: "list"
+      - name: cellnames
+        type_matlab: "cell array of char"
+        type_python: "list of str"
+      - name: minreference
+        type_matlab: "double"
+        type_python: "int"
+      - name: maxreference
+        type_matlab: "double"
+        type_python: "int"
+    output_arguments:
+      - name: cells
+        type_matlab: "cell array"
+        type_python: "list"
+      - name: cellnames
+        type_matlab: "cell array of char"
+        type_python: "list of str"
+      - name: incl
+        type_matlab: "double array (1-based positions)"
+        type_python: "list of int (0-based positions)"
+    decision_log: >
+      As filter_by_index; the reference numbers themselves are user-facing and
+      unshifted.
+
+  - name: findtestdirinfo
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/findtestdirinfo.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/findtestdirinfo.py"
+    input_arguments:
+      - name: ds
+        type_matlab: "dirstruct"
+        type_python: "vlt.file.dirstruct.dirstruct"
+      - name: tag
+        type_matlab: "char"
+        type_python: "str"
+    output_arguments:
+      - name: dirname
+        type_matlab: "char (empty when not found)"
+        type_python: "str | None"
+    decision_log: >
+      MATLAB signals 'not found' with an empty char array; Python returns None.
+
+  - name: nameref2cellname
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/nameref2cellname.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/nameref2cellname.py"
+    input_arguments:
+      - name: ds
+        type_matlab: "dirstruct"
+        type_python: "vlt.file.dirstruct.dirstruct"
+      - name: name
+        type_matlab: "char"
+        type_python: "str"
+      - name: ref
+        type_matlab: "double"
+        type_python: "int"
+      - name: index
+        type_matlab: "double"
+        type_python: "int"
+    output_arguments:
+      - name: cellname
+        type_matlab: "char"
+        type_python: "str"
+    decision_log: >
+      Exact match; inverse of cellname2nameref. `ref` and `index` are user-facing
+      record numbers and keep MATLAB's values.
+
+  - name: read_trainingtype
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/read_trainingtype.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/read_trainingtype.py"
+    input_arguments:
+      - name: ds
+        type_matlab: "dirstruct"
+        type_python: "vlt.file.dirstruct.dirstruct"
+      - name: ErrorIfNoTrainingType
+        type_matlab: "logical (name/value pair)"
+        type_python: "bool (keyword, default False)"
+        optional: true
+      - name: ErrorIfNoTrainingAngle
+        type_matlab: "logical (name/value pair)"
+        type_python: "bool (keyword, default False)"
+        optional: true
+      - name: ErrorIfNoTF
+        type_matlab: "logical (name/value pair)"
+        type_python: "bool (keyword, default False)"
+        optional: true
+      - name: ErrorIfNoTrainingStim
+        type_matlab: "logical (name/value pair)"
+        type_python: "bool (keyword, default False)"
+        optional: true
+    output_arguments:
+      - name: assoc
+        type_matlab: "struct array"
+        type_python: "list of dict"
+    decision_log: >
+      Reads the trainingtype.txt / trainingangle.txt / trainingstim.txt /
+      trainingtemporalfrequency.txt files documented by vhlib.CDM.training_help.
+
+  - name: read_unitquality
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/read_unitquality.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/read_unitquality.py"
+    input_arguments:
+      - name: ds
+        type_matlab: "dirstruct"
+        type_python: "vlt.file.dirstruct.dirstruct"
+    output_arguments:
+      - name: cellinfo
+        type_matlab: "struct array"
+        type_python: "list of dict"
+    decision_log: >
+      Reads unitquality.txt (and unitquality_channelshift.txt); see
+      vhlib.CDM.unitquality and vhlib.CDM.unitquality_channelshift for the file
+      formats.
+
+  - name: remove_associate
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/remove_associate.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/remove_associate.py"
+    input_arguments:
+      - name: type
+        python_name: type_
+        type_matlab: "char | cell array of char"
+        type_python: "str | list of str"
+    output_arguments: []
+    decision_log: >
+      The second MATLAB argument is named `type`, which shadows a Python builtin,
+      so the Python parameter is `type_`. This is the only renamed argument in the
+      package. The first argument `ds` is unchanged.
+
+  - name: repeated_measurement_associates
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/repeated_measurement_associates.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/repeated_measurement_associates.py"
+    input_arguments:
+      - name: cell
+        type_matlab: "measureddata"
+        type_python: "dict | vhlib.md.MeasuredData"
+      - name: associatename
+        type_matlab: "char with %d placeholder"
+        type_python: "str with %d placeholder"
+      - name: nmax
+        type_matlab: "double"
+        type_python: "int"
+    output_arguments:
+      - name: n
+        type_matlab: "double array"
+        type_python: "list of int"
+    decision_log: >
+      The returned numbers are the values substituted into the associate name,
+      not array positions, so they stay 1-based as the MATLAB caller expects.
+
+  - name: testdirinfo
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/testdirinfo.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/help_files.py"
+    python_name: "vhlib.CDM.testdirinfo"
+    input_arguments: []
+    output_arguments: []
+    decision_log: >
+      Help-only function for the 'testdirinfo.txt' file. Grouped into help_files.py
+      with unitquality_channelshift rather than getting a module of its own; it is
+      re-exported from vhlib.CDM so the call name matches MATLAB.
+
+  - name: trainingangle
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/trainingangle.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/training_help.py"
+    python_name: "vhlib.CDM.trainingangle"
+    input_arguments: []
+    output_arguments: []
+    decision_log: >
+      Help-only function for 'trainingangle.txt'. Grouped into training_help.py
+      with the other three training file help functions.
+
+  - name: trainingstim
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/trainingstim.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/training_help.py"
+    python_name: "vhlib.CDM.trainingstim"
+    input_arguments: []
+    output_arguments: []
+    decision_log: >
+      Help-only function for 'trainingstim.txt'. Grouped into training_help.py.
+
+  - name: trainingtemporalfrequency
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/trainingtemporalfrequency.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/training_help.py"
+    python_name: "vhlib.CDM.trainingtemporalfrequency"
+    input_arguments: []
+    output_arguments: []
+    decision_log: >
+      Help-only function for 'trainingtemporalfrequency.txt'. Grouped into
+      training_help.py.
+
+  - name: trainingtype
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/trainingtype.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/training_help.py"
+    python_name: "vhlib.CDM.trainingtype"
+    input_arguments: []
+    output_arguments: []
+    decision_log: >
+      Help-only function for 'trainingtype.txt'. Grouped into training_help.py.
+
+  - name: unitquality
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/unitquality.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/unitquality.py"
+    input_arguments: []
+    output_arguments: []
+    decision_log: >
+      Help-only function for the 'unitquality.txt' file. Kept in its own module
+      because read_unitquality refers to it as the format of record.
+
+  - name: unitquality_channelshift
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/unitquality_channelshift.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/help_files.py"
+    python_name: "vhlib.CDM.unitquality_channelshift"
+    input_arguments: []
+    output_arguments: []
+    decision_log: >
+      Help-only function for 'unitquality_channelshift.txt'. Grouped into
+      help_files.py with testdirinfo.
+
+  - name: was_recorded
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/CellDatabaseManagement/was_recorded.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/CDM/was_recorded.py"
+    input_arguments:
+      - name: cell
+        type_matlab: "measureddata"
+        type_python: "dict | vhlib.md.MeasuredData"
+      - name: testdir
+        type_matlab: "char"
+        type_python: "str"
+    output_arguments:
+      - name: b
+        type_matlab: "double (0 or 1)"
+        type_python: "int (0 or 1)"
+    decision_log: >
+      Returns MATLAB's 0/1 rather than a Python bool, so that callers ported from
+      MATLAB arithmetic on the result keep working. MATLAB's 'assume recorded when
+      there is no vhlv_loadcelldata associate' behaviour is preserved.

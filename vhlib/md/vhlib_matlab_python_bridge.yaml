@@ -1,0 +1,461 @@
+# MATLAB -> Python bridge contract for the vhlib.md package.
+#
+# Every module in this package must appear here. AnalysisTools/MeasuredData is
+# large (224 .m files) and only a small, deliberately chosen part of it is
+# ported; the rest is accounted for per area under `coverage_areas`.
+# See PORTING_INSTRUCTIONS for the convention and the status vocabulary.
+
+project_metadata:
+  bridge_version: "1.1"
+  matlab_repository: "https://github.com/VH-Lab/vhlab-library-matlab"
+  matlab_package_path: "AnalysisTools/MeasuredData"
+  python_package: "vhlib.md"
+  naming_policy: "Strict MATLAB Mirror"
+  indexing_policy: "Semantic Parity (1-based for user concepts, 0-based for internal data)"
+  coverage: >
+    9 of the 224 .m files under AnalysisTools/MeasuredData are ported: the
+    MEASUREDDATA constructor plus seven of its associate methods, and one
+    general routine. The analysis-object hierarchy and the data-bearing
+    subclasses are not. See `coverage_areas` for the per-area decisions.
+  notes: >
+    The Python package name `md` abbreviates the MATLAB folder name
+    `MeasuredData`. MATLAB's `@measureddata` class folder becomes the single
+    module vhlib/md/measureddata.py holding class `MeasuredData` (PEP 8 class
+    name; the MATLAB call name is preserved as the module name). Four associate
+    methods are ALSO exposed as module-level functions in vhlib/md/__init__.py
+    that accept either a MeasuredData instance or a plain dict, because cells
+    loaded from .mat files arrive as dicts, not objects.
+
+functions:
+  - name: measureddata
+    type: class
+    status: ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/measureddata.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/md/measureddata.py"
+    python_name: "vhlib.md.MeasuredData"
+    input_arguments:
+      - name: intervals
+        type_matlab: "Nx2 double"
+        type_python: "np.ndarray | list of [t0, t1]"
+      - name: desc_long
+        type_matlab: "char"
+        type_python: "str (default '')"
+        optional: true
+      - name: desc_brief
+        type_matlab: "char"
+        type_python: "str (default '')"
+        optional: true
+    output_arguments:
+      - name: A
+        type_matlab: "measureddata"
+        type_python: "MeasuredData"
+    decision_log: >
+      MATLAB's value semantics (methods return a new object) become Python
+      reference semantics: `associate` and `disassociate` mutate self and return
+      self, so `md = md.associate(...)` — the MATLAB idiom — still reads
+      correctly. The class name is `MeasuredData` for PEP 8; the MATLAB name
+      survives as the module name.
+
+  - name: associate
+    type: method
+    class: measureddata
+    status: ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/associate.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/md/measureddata.py"
+    python_name: "vhlib.md.MeasuredData.associate (also vhlib.md.associate)"
+    input_arguments:
+      - name: typeorstruct
+        python_name: type_or_struct
+        type_matlab: "char | struct"
+        type_python: "str | dict"
+      - name: owner
+        type_matlab: "char"
+        type_python: "str | None"
+        optional: true
+      - name: data
+        type_matlab: "any"
+        type_python: "any"
+        optional: true
+      - name: description
+        type_matlab: "char"
+        type_python: "str | None"
+        optional: true
+    output_arguments:
+      - name: nmd
+        type_matlab: "measureddata"
+        type_python: "MeasuredData | dict"
+    decision_log: >
+      Also exposed as the module-level vhlib.md.associate, which dispatches on
+      whether its first argument is a MeasuredData or a dict. Both forms replace
+      an existing associate with a matching type/owner/description rather than
+      appending a duplicate, matching MATLAB.
+
+  - name: findassociate
+    type: method
+    class: measureddata
+    status: ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/findassociate.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/md/measureddata.py"
+    python_name: "vhlib.md.MeasuredData.findassociate (also vhlib.md.findassociate)"
+    input_arguments:
+      - name: type
+        python_name: type_str
+        type_matlab: "char"
+        type_python: "str"
+      - name: owner
+        type_matlab: "char"
+        type_python: "str"
+      - name: description
+        type_matlab: "char"
+        type_python: "str"
+    output_arguments:
+      - name: a
+        type_matlab: "struct array"
+        type_python: "list of dict"
+      - name: i
+        type_matlab: "double array (1-based positions)"
+        type_python: "list of int (0-based positions)"
+    decision_log: >
+      The MATLAB argument `type` shadows a Python builtin, so the parameter is
+      `type_str`. The returned positions index the associates list and are
+      therefore 0-based. An empty string still matches everything, as in MATLAB.
+
+  - name: getassociate
+    type: method
+    class: measureddata
+    status: ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/getassociate.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/md/measureddata.py"
+    python_name: "vhlib.md.MeasuredData.getassociate"
+    input_arguments:
+      - name: n
+        python_name: indices
+        type_matlab: "double array (1-based)"
+        type_python: "int | list of int (0-based)"
+    output_arguments:
+      - name: a
+        type_matlab: "struct array"
+        type_python: "dict | list of dict"
+    decision_log: >
+      Indices are internal array positions, so they are 0-based in Python. Pass
+      the values returned by findassociate straight through; do not adjust them.
+
+  - name: disassociate
+    type: method
+    class: measureddata
+    status: ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/disassociate.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/md/measureddata.py"
+    python_name: "vhlib.md.MeasuredData.disassociate (also vhlib.md.disassociate)"
+    input_arguments:
+      - name: n
+        python_name: indices
+        type_matlab: "double array (1-based)"
+        type_python: "int | list of int (0-based)"
+    output_arguments:
+      - name: nmd
+        type_matlab: "measureddata"
+        type_python: "MeasuredData | dict"
+    decision_log: >
+      0-based indices, as getassociate. Removal is done highest-index-first so a
+      list of indices stays valid during the loop.
+
+  - name: numassociates
+    type: method
+    class: measureddata
+    status: ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/numassociates.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/md/measureddata.py"
+    python_name: "vhlib.md.MeasuredData.numassociates"
+    input_arguments: []
+    output_arguments:
+      - name: n
+        type_matlab: "double"
+        type_python: "int"
+    decision_log: >
+      Exact match.
+
+  - name: associates2struct
+    type: method
+    class: measureddata
+    status: ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/associates2struct.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/md/measureddata.py"
+    python_name: "vhlib.md.MeasuredData.associates2struct"
+    input_arguments:
+      - name: initial_struct_list
+        type_matlab: "struct"
+        type_python: "not implemented"
+        optional: true
+    output_arguments:
+      - name: mystruct
+        type_matlab: "struct"
+        type_python: "dict"
+    decision_log: >
+      Partial port. The MATLAB `initial_struct_list` argument, which seeds and
+      filters the output fields, is not implemented; the Python version always
+      converts every associate. Field names still have spaces replaced by
+      underscores so the keys match MATLAB's field names.
+
+  - name: update
+    type: method
+    class: measureddata
+    status: ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/update.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/md/measureddata.py"
+    python_name: "vhlib.md.MeasuredData.update"
+    input_arguments: []
+    output_arguments:
+      - name: A
+        type_matlab: "measureddata"
+        type_python: "None"
+    decision_log: >
+      Stub, matching the MATLAB method's role as a no-op hook that subclasses
+      override. It exists so that code calling update() on a base MeasuredData
+      does not fail; there are no Python subclasses yet.
+
+  - name: associate_all
+    type: function
+    status: does_not_exist
+    matlab_path: null
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/md/__init__.py"
+    python_name: "vhlib.md.associate_all"
+    input_arguments:
+      - name: cells
+        type_python: "list | dict"
+      - name: assoclist
+        type_python: "list of dict"
+    output_arguments:
+      - name: cells
+        type_python: "list | dict"
+    decision_log: >
+      Has no counterpart in vhlab-library-matlab. It belongs to the vlt
+      (vhlab-toolbox) layer and is implemented here as a stopgap so the CDM
+      functions that add associates to every cell have something to call; see
+      vltMissingFunctions.md. Move it to vhlab-toolbox-python and delete it here
+      once that package provides it.
+
+  - name: get_data
+    type: method
+    class: measureddata
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/get_data.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      The base-class method errors in MATLAB; the real implementations live in
+      the subclasses (@doubledata, @spikedata), which are not ported. Port this
+      together with whichever subclass is needed first.
+
+  - name: get_memory
+    type: method
+    class: measureddata
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/get_memory.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Same as get_data: meaningful only once a data-bearing subclass is ported.
+
+  - name: get_intervals
+    type: method
+    class: measureddata
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/get_intervals.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Accessor. Python code reads the `intervals` attribute directly; add the
+      method if a caller ported from MATLAB needs the exact call name.
+
+  - name: set_intervals
+    type: method
+    class: measureddata
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/set_intervals.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Mutator. Python code assigns the `intervals` attribute directly. Note that
+      the MATLAB version validates the Nx2 shape; the Python constructor does
+      that validation but attribute assignment does not.
+
+  - name: get_description_brief
+    type: method
+    class: measureddata
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/get_description_brief.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Accessor for the `description_brief` attribute, read directly in Python.
+
+  - name: get_description_long
+    type: method
+    class: measureddata
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/get_description_long.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Accessor for the `description_long` attribute, read directly in Python.
+
+  - name: set_description_brief
+    type: method
+    class: measureddata
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/set_description_brief.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Mutator for `description_brief`, assigned directly in Python. Note that the
+      MATLAB file declares a function named `get_description_brief`, not matching
+      its filename; fix that upstream before porting.
+
+  - name: set_description_long
+    type: method
+    class: measureddata
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/set_description_long.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Mutator for `description_long`, assigned directly in Python.
+
+  - name: associatessubset2struct
+    type: method
+    class: measureddata
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/associatessubset2struct.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Selective variant of associates2struct. No Python caller yet; port it
+      together with the `initial_struct_list` argument of associates2struct.
+
+  - name: searchassociate
+    type: method
+    class: measureddata
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/searchassociate.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Token-based fuzzy search over associates. findassociate covers the exact
+      matching that the ported CDM functions need; no caller needs the fuzzy form
+      yet.
+
+  - name: spiketriggeredaverage
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/MeasuredData/general/spiketriggeredaverage.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/md/general/spiketriggeredaverage.py"
+    input_arguments:
+      - name: md
+        python_name: "signal, signal_t"
+        type_matlab: "measureddata (continuous)"
+        type_python: "np.ndarray, np.ndarray"
+      - name: spikedat
+        python_name: spiketimes
+        type_matlab: "spikedata"
+        type_python: "np.ndarray | list of float"
+      - name: interval
+        python_name: window
+        type_matlab: "[t0 t1] double"
+        type_python: "tuple (pre, post) in seconds"
+      - name: tests
+        type_matlab: "double array of interval numbers"
+        type_python: "not implemented"
+    output_arguments:
+      - name: rast
+        type_matlab: "double matrix (one row per spike)"
+        type_python: "not implemented"
+      - name: avg
+        python_name: sta
+        type_matlab: "double array"
+        type_python: "np.ndarray"
+      - name: stddev
+        type_matlab: "double array"
+        type_python: "not implemented"
+      - name: stderror
+        type_matlab: "double array"
+        type_python: "not implemented"
+      - name: thespikes
+        type_matlab: "double array"
+        type_python: "not implemented"
+      - name: rastn
+        type_matlab: "double matrix"
+        type_python: "not implemented"
+      - name: t_sta
+        type_matlab: "not present"
+        type_python: "np.ndarray (time base of the average)"
+      - name: num_spikes
+        type_matlab: "not present"
+        type_python: "int (number of spikes that contributed)"
+    decision_log: >
+      DELIBERATE DIVERGENCE, and the largest one in this repository. MATLAB takes
+      a continuous MEASUREDDATA object and a SPIKEDATA object and works over a
+      list of recording intervals; neither class is ported, so the Python version
+      takes raw arrays (signal, signal_t, spiketimes) and a single window. It
+      returns (sta, t_sta, num_spikes) instead of MATLAB's six outputs: the
+      per-spike raster and the spread statistics are not computed, and the
+      explicit time base is new. Results agree with MATLAB only for uniformly
+      sampled signals over a single interval; spikes whose full window falls
+      outside the signal are skipped rather than zero-padded. Revisit this
+      signature if @spikedata / @doubledata are ever ported.
+
+# Areas of AnalysisTools/MeasuredData with no Python presence, and why.
+coverage_areas:
+  - matlab_path: "AnalysisTools/MeasuredData/Analyses_objects"
+    matlab_file_count: 166
+    status: not_yet_ported
+    decision_log: >
+      The MATLAB analysis-object hierarchy (@periodic_curve, @tuning_curve,
+      @raster, @reverse_corr, @analysis_generic, and their display objects). This
+      is where most of the file count in this folder lives. Superseded downstream
+      by NDI apps and calculators rather than reproduced object-for-object; port
+      individual routines on demand rather than the hierarchy wholesale.
+
+  - matlab_path: "AnalysisTools/MeasuredData/Analyses_routines"
+    matlab_file_count: 14
+    status: not_yet_ported
+    decision_log: >
+      Reverse-correlation and periodic-stimulus routines that operate on the
+      analysis objects above; blocked on the same decision.
+
+  - matlab_path: "AnalysisTools/MeasuredData/DataManagement"
+    matlab_file_count: 4
+    status: not_yet_ported
+    decision_log: >
+      identifytestdir and relatives. Overlaps in purpose with the ported
+      vhlib.CDM directory functions; decide whether the Python side needs both
+      before porting.
+
+  - matlab_path: "AnalysisTools/MeasuredData/general"
+    matlab_file_count: 15
+    status: partially_ported
+    decision_log: >
+      spiketriggeredaverage is ported (see above). The other 14 files — raster,
+      burst and cross-correlation helpers, plus spiketriggeredaverage2 — take
+      measureddata/spikedata objects and are not ported. Two of them
+      (conttriggerhelper, xcorrspiketimes) are MEX sources and would need a
+      numpy or Cython implementation rather than a translation.
+
+  - matlab_path: "AnalysisTools/MeasuredData/@doubledata, @continuousdata, @spikedata, @fieldrecording, @singleunit, @analog_data"
+    matlab_file_count: 7
+    status: not_yet_ported
+    decision_log: >
+      The data-bearing MEASUREDDATA subclasses. Only the associate machinery of
+      the base class is needed by the ported CDM code, which treats cells as
+      dicts loaded from .mat files. Porting any of these is what would unblock
+      get_data, get_memory, and a faithful spiketriggeredaverage.

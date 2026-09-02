@@ -1,0 +1,16 @@
+# Matches the lint configuration of vhlab-toolbox-python, so the two Python
+# repositories in the family are held to the same standard.
+
+[lint]
+select = ["E", "F", "W"]
+ignore = [
+    "E501",   # line too long — existing code
+    "E701",   # multiple statements on one line — existing style
+    "E741",   # ambiguous variable name — existing style
+    "F401",   # unused imports — package __init__ re-exports
+    "F841",   # local variable assigned but never used — existing code
+    "E722",   # bare except — existing code
+    "E402",   # module-level import not at top — existing code
+    "W293",   # blank line contains whitespace — existing code
+    "W605",   # invalid escape sequence — existing code
+]

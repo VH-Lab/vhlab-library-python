@@ -2,7 +2,67 @@
 
 The functions/classes in in vhlab-library should live in the namespace vhlib. For example, functions should be vhlib.fun.
 
+## Folder mapping
+
+The Python package does not mirror the MATLAB folder names; the abbreviations
+are decoded here and nowhere else, so keep this table current.
+
+| MATLAB folder                            | Python package        |
+|------------------------------------------|-----------------------|
+| `AnalysisTools/CellDatabaseManagement/`  | `vhlib/CDM/`          |
+| `AnalysisTools/MeasuredData/`            | `vhlib/md/`           |
+| `StimulusDecoding/`                      | `vhlib/StimDecode/`   |
+| `AnalysisTools/ResponsesFitsIndexesPlotting/response_stats/` | `vhlib/response_stats/` |
+
+## Bridge files
+
+Every `vhlib` package carries a `vhlib_matlab_python_bridge.yaml` recording,
+for each ported function, where it came from in MATLAB and what was decided
+along the way. This is the same convention NDI-python and did-python use
+(`ndi_matlab_python_bridge.yaml`, `did_matlab_python_bridge.yaml`); the file
+name is `<python package>_matlab_python_bridge.yaml`.
+
+- `vhlib/vhlib_matlab_python_bridge.yaml` — the folder mapping above, the status
+  vocabulary, and a per-area decision for every part of vhlab-library-matlab,
+  including the parts with no Python presence at all.
+- `vhlib/CDM/`, `vhlib/StimDecode/`, `vhlib/md/`, `vhlib/response_stats/` — one
+  file each, per function.
+
+Each function entry carries:
+
+- `matlab_path` / `python_path` — the mapping, in both directions. Someone
+  looking for the Python home of a MATLAB function, or asking whether it was
+  ported at all, should get their answer from these files in one lookup.
+- `matlab_last_sync_hash` — the vhlab-library-matlab revision the port was
+  checked against, so drift is detectable rather than assumed.
+- `input_arguments` / `output_arguments` — with `type_matlab` and `type_python`,
+  and `python_name` wherever an argument had to be renamed.
+- `decision_log` — where a port deliberately diverges, and why. This is the
+  field that stops the same question being re-litigated.
+- `status` — one of `ported`, `not_yet_ported`, `not_applicable`,
+  `ported_elsewhere`, `deprecated_in_matlab`, `does_not_exist`, defined in
+  `status_vocabulary` in the top-level bridge file. `partially_ported` is for
+  areas only: a single function that diverges is `ported`, with the divergence
+  in its `decision_log`.
+
+When you port a function, add its entry in the same commit. When you decide NOT
+to port something, say so with a `not_applicable` or `not_yet_ported` entry and
+a reason — otherwise "not ported" and "deliberately skipped" are
+indistinguishable, and the next person re-does the research.
+
+`tests/test_bridge.py` enforces the mechanical part: every module has an entry,
+every `python_path` exists, every `status` is from the vocabulary.
+
 ## Testing
 
 Unittests should be created for all functions/classes.
 
+Run them with:
+
+```bash
+python3 -m unittest discover -s tests
+```
+
+CI runs that suite and `ruff check vhlib/ tests/` on every push and pull
+request. `requirements.txt` installs `vhlab-toolbox-python` straight from
+GitHub, since it is not on PyPI.
