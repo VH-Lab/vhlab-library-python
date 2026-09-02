@@ -16,7 +16,7 @@ project_metadata:
   naming_policy: "Strict MATLAB Mirror"
   indexing_policy: "Semantic Parity (1-based for user concepts, 0-based for internal data)"
   coverage: >
-    1120 .m files in vhlab-library-matlab; 43 of them are ported, into 32 Python
+    1120 .m files in vhlab-library-matlab; 46 of them are ported, into 33 Python
     modules. Every one of the 1120 is accounted for below, per function in the
     ported areas and per area everywhere else.
 
@@ -43,7 +43,7 @@ subpackages:
     python_path: "vhlib/StimDecode"
     matlab_path: "StimulusDecoding"
     bridge_file: "vhlib/StimDecode/vhlib_matlab_python_bridge.yaml"
-    coverage: "10 of 20 MATLAB functions ported."
+    coverage: "11 of 20 MATLAB functions ported."
 
   - python_package: "vhlib.response_stats"
     python_path: "vhlib/response_stats"
@@ -56,8 +56,9 @@ subpackages:
     matlab_path: "AnalysisTools/MeasuredData"
     bridge_file: "vhlib/md/vhlib_matlab_python_bridge.yaml"
     coverage: >
-      The MEASUREDDATA associate machinery and one general routine; 9 of 224
-      .m files. The rest is accounted for per area in that file.
+      The MEASUREDDATA associate machinery, its interval accessors, and one
+      general routine; 11 of 224 .m files. The rest is accounted for per area in
+      that file.
 
 # Every MATLAB area, including the three above, with its decision.
 coverage_areas:
@@ -215,7 +216,10 @@ coverage_areas:
 
 # Functions in other repositories' MATLAB trees are out of scope here, but this
 # records what is known to be needed from this repository by a Python port
-# elsewhere, so the question is not re-researched.
+# elsewhere, so the question is not re-researched. The list below is every place
+# NDI-matlab (18ff517) calls into vhlab-library-matlab, checked against the
+# sources rather than taken from a hand-maintained list; see
+# vhlab-library-python#6 for how it was derived.
 downstream_requirements:
   - requested_by: "NDI-python port of ndi.app.oridirtuning"
     matlab_function: "neural_response_significance"
@@ -228,3 +232,97 @@ downstream_requirements:
       NDI-matlab/src/ndi/docs/developer_notes/vhlabLibraryMatlab.md. That list
       should be reconciled with this file so the requirement is recorded on both
       sides rather than only in NDI-matlab's notes.
+
+  - requested_by: "NDI-python port of ndi.daq.metadatareader.NewStimStims and ndi.setup.daq.reader.mfdaq.stimulus.vhlabvisspike2"
+    matlab_function: "getstimscript"
+    matlab_path: "StimulusDecoding/getstimscript.m"
+    status: ported
+    python_path: "vhlib/StimDecode/getstimscript.py"
+    decision_log: >
+      Which repository's getstimscript NDI-matlab reaches was the open question
+      of vhlab-library-python#6; it is this repository's. The name is defined
+      three times in the MATLAB family, but the other two —
+      vhlab-toolbox-matlab/file/@dirstruct/getstimscript.m and this repository's
+      OldSpikeImporters/@cksdirstruct/getstimscript.m — are class methods,
+      GETSTIMSCRIPT(DS, THEDIR). NDI-matlab's call sites
+      (+ndi/+daq/+metadatareader/NewStimStims.m:35,
+      +ndi/+setup/+daq/+reader/+mfdaq/+stimulus/vhlabvisspike2.m:116) both pass a
+      char path, so MATLAB dispatch sends them to the free function here and path
+      order does not enter into it. The Python port loads the file and returns
+      'saveScript' and 'MTI2'; interrogating the stimscript (numStims,
+      getparameters) still needs a NewStim port. Per-argument detail is in
+      vhlib/StimDecode/vhlib_matlab_python_bridge.yaml.
+
+  - requested_by: "NDI-python port of ndi.setup.conv.vhlab.importMeasuredDataCells"
+    matlab_function: "get_intervals"
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/get_intervals.m"
+    status: ported
+    python_path: "vhlib/md/measureddata.py"
+    decision_log: >
+      Called as get_intervals(cells{i}) at importMeasuredDataCells.m:23 to match
+      a cell's measured intervals against an NDI probe's epochs. Ported as a
+      MeasuredData method and as a module-level function that also accepts the
+      dicts and .mat structs that cells arrive as; set_intervals came with it.
+
+  - requested_by: "NDI-python port of ndi.setup.conv.vhlab.importMeasuredDataCells"
+    matlab_function: "cellname2nameref"
+    matlab_path: "AnalysisTools/CellDatabaseManagement/cellname2nameref.m"
+    status: ported
+    python_path: "vhlib/CDM/cellname2nameref.py"
+    decision_log: >
+      Called at importMeasuredDataCells.m:22. Already ported before the
+      dependency was recorded here.
+
+  - requested_by: "NDI-python port of ndi.setup.daq.reader.mfdaq.stimulus.vhlabvisspike2"
+    matlab_function: "read_stimtimes_txt"
+    matlab_path: "StimulusDecoding/read_stimtimes_txt.m"
+    status: ported
+    python_path: "vhlib/StimDecode/read_stimtimes_txt.py"
+    decision_log: >
+      Called at vhlabvisspike2.m:108. Already ported before the dependency was
+      recorded here.
+
+  - requested_by: "NDI-python port of ndi.setup.conv.vhlab.importMeasuredDataCells"
+    matlab_function: "get_data"
+    matlab_path: "AnalysisTools/MeasuredData/@measureddata/get_data.m"
+    status: not_yet_ported
+    decision_log: >
+      Called as get_data(cells{j}, [t0 t1]) at importMeasuredDataCells.m:61. The
+      cells are read from a VH lab experiment file, so the call reaches a
+      data-bearing subclass (@spikedata and the OldSpikeImporters classes), not
+      the base-class bounds check that is all @measureddata/get_data.m does.
+      Blocked on the decision below about that lineage.
+
+  - requested_by: "NDI-python port of ndi.daq.metadatareader.NewStimStims"
+    matlab_function: "getparameters"
+    matlab_path: null
+    status: not_applicable
+    decision_log: >
+      Corrects vhlab-library-python#6, which attributed this call to
+      @autocluster/@windowdiscriminator in this repository. The only NDI-matlab
+      call site is NewStimStims.m:37, `getparameters(get(ss,i))`, where ss is the
+      stimscript returned by getstimscript — so both getparameters and get() are
+      NewStim methods on a NewStim stimulus, and nothing in this repository is
+      needed. What that call site actually waits on is a Python NewStim.
+
+  - requested_by: "NDI-python port of ndi.gui.gui"
+    matlab_function: "vhintan_importcells"
+    matlab_path: "SpikeDataExtraction/SpikeImporters/VH-Intan/vhintan_importcells.m"
+    status: not_yet_ported
+    decision_log: >
+      Called at +ndi/+gui/gui.m:150. Reaches the OldSpikeImporters lineage
+      (cksmultipleunit, cksmeasureddata, get_data_par, loaddata,
+      vhintan_loadcell), which is where the get_data requirement above also
+      lands. Whether that lineage should be ported at all, or whether NDI's two
+      call sites are themselves legacy conversion paths, is an open decision on
+      vhlab-library-python#6 and is deliberately not settled here.
+
+  - requested_by: "NDI-python port of ndi.gui.gui"
+    matlab_function: "vhintan_clusternameref"
+    matlab_path: "SpikeDataExtraction/Intan_VHLAnalogInput_Analysis/vhintan_clusternameref.m"
+    status: not_yet_ported
+    decision_log: >
+      Called at +ndi/+gui/gui.m:154. It drives cluster_spikewaves_gui, an
+      interactive MATLAB spike-sorting GUI, and writes the cluster files back to
+      the recording directories; a faithful port needs a GUI decision, not just a
+      function port. Same open decision as vhintan_importcells.

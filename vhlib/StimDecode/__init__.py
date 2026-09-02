@@ -8,3 +8,4 @@ from .vhlabcorrectmti import vhlabcorrectmti
 from .write_interconnect_textfiles import write_interconnect_textfiles
 from .write_stimtimes_txt import write_stimtimes_txt
 from .getstimdirectorytime import getstimdirectorytime
+from .getstimscript import getstimscript
