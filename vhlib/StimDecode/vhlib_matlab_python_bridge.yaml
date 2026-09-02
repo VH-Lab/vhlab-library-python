@@ -11,7 +11,7 @@ project_metadata:
   python_package: "vhlib.StimDecode"
   naming_policy: "Strict MATLAB Mirror"
   indexing_policy: "Semantic Parity (1-based for user concepts, 0-based for internal data)"
-  coverage: "10 of 20 MATLAB functions in StimulusDecoding are ported; 10 are not_yet_ported."
+  coverage: "11 of 20 MATLAB functions in StimulusDecoding are ported; 9 are not_yet_ported."
   notes: >
     The Python package name `StimDecode` abbreviates the MATLAB folder name
     `StimulusDecoding`. The unported half of this folder is dominated by
@@ -300,8 +300,9 @@ functions:
     matlab_last_sync_hash: "cca1cce"
     python_path: null
     decision_log: >
-      Compares stimtimes.txt against stims.mat. Blocked on reading the NewStim
-      stimscript stored in stims.mat, which has no Python representation yet.
+      Compares stimtimes.txt against stims.mat. getstimscript loads the file, but
+      this comparison walks the NewStim stimscript stored in it, which has no
+      Python representation yet.
 
   - name: findtransitionsSGSBL
     type: function
@@ -336,14 +337,51 @@ functions:
 
   - name: getstimscript
     type: function
-    status: not_yet_ported
+    status: ported
     matlab_path: "StimulusDecoding/getstimscript.m"
     matlab_last_sync_hash: "cca1cce"
-    python_path: null
+    python_path: "vhlib/StimDecode/getstimscript.py"
+    input_arguments:
+      - name: dirname
+        type_matlab: "char"
+        type_python: "str"
+    output_arguments:
+      - name: thestimscript
+        type_matlab: "stimscript (NewStim object)"
+        type_python: "object, as produced by the .mat loader"
+      - name: mti
+        type_matlab: "struct array (variable MTI2)"
+        type_python: "array of scipy mat_struct (squeezed: a one-element MTI2 arrives as a single struct)"
     decision_log: >
-      Loads the NewStim `stimscript` object ('saveScript') and MTI from stims.mat.
-      Blocked on a Python port of NewStim; the MTI half of its output is already
-      reachable through vhlabcorrectmti.
+      Which repository's getstimscript NDI-matlab reaches was an open question
+      (vhlab-library-python#6); it is settled, and this is the one. Three MATLAB
+      files define the name, but only this one is a free function: the other two,
+      vhlab-toolbox-matlab/file/@dirstruct/getstimscript.m and this repository's
+      SpikeDataExtraction/SpikeImporters/OldSpikeImporters/@cksdirstruct/getstimscript.m,
+      are class methods with the signature GETSTIMSCRIPT(DS, THEDIR), dispatched
+      on a dirstruct or cksdirstruct object. NDI-matlab's two call sites,
+      +ndi/+daq/+metadatareader/NewStimStims.m:35 and
+      +ndi/+setup/+daq/+reader/+mfdaq/+stimulus/vhlabvisspike2.m:116, both pass a
+      char directory path, so they resolve here regardless of MATLAB path order.
+      There is no path-order ambiguity to resolve, and porting the dirstruct
+      method is a separate question — vhlab-toolbox-python already carries it as
+      vlt.file.dirstruct.dirstruct.getstimscript.
+
+      The port stops where the NewStim object model begins. 'saveScript' is
+      returned exactly as the .mat loader produces it: MATLAB writes it as a
+      NewStim `stimscript` object, and with no Python NewStim there is nothing to
+      convert it to. Callers that need stimulus parameters off it — NDI-matlab's
+      NewStimStims.m calls numStims() and getparameters() — need a NewStim port
+      first; what this function settles is where the file lives, which variables
+      to read, and how the failures read. MTI2 is returned as loaded.
+
+      Reading is delegated to vlt.file.dirstruct._load_mat_file, as
+      repairoverflow_stimtimes_txt already does, so v7.3 files work and the two
+      functions cannot disagree about how a stims.mat is read. MATLAB's two
+      error() calls become FileNotFoundError with the same wording. MATLAB's
+      load(...,'saveScript','MTI2') warns on a missing variable and then fails at
+      the field access; the Python port raises KeyError naming every variable
+      that is missing, which is the same failure said once.
 
   - name: getstimscriptparameters
     type: function
@@ -352,8 +390,9 @@ functions:
     matlab_last_sync_hash: "cca1cce"
     python_path: null
     decision_log: >
-      Reads parameters off a NewStim stimscript. Blocked on the same object model
-      as getstimscript.
+      Reads parameters off a NewStim stimscript. getstimscript can now load the
+      stimscript out of stims.mat, but reading parameters off it is blocked on the
+      NewStim object model.
 
   - name: getstimscriptproperties
     type: function
@@ -373,8 +412,9 @@ functions:
     matlab_last_sync_hash: "cca1cce"
     python_path: null
     decision_log: >
-      getstimscript plus clock synchronization. Blocked on the NewStim object
-      model.
+      getstimscript plus clock synchronization. getstimscript itself is ported;
+      this one adds a sync record read through the NewStim object model, so it
+      stays blocked on that.
 
   - name: mti_from_stimtimes_txt
     type: function
