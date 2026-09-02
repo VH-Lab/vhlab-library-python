@@ -1,4 +1,4 @@
-vhlab-toolbox-python @ git+https://github.com/VH-Lab/vhlab-toolbox-python
+vhlab-toolbox-python @ git+https://github.com/VH-Lab/vhlab-toolbox-python.git@main
 numpy
 scipy
 pyyaml

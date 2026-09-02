@@ -9,7 +9,7 @@ description = "Python port of vhlab-library-matlab"
 requires-python = ">=3.10"
 dependencies = [
     # Mirrors requirements.txt, which stays for anyone installing that way.
-    "vhlab-toolbox-python @ git+https://github.com/VH-Lab/vhlab-toolbox-python",
+    "vhlab-toolbox-python @ git+https://github.com/VH-Lab/vhlab-toolbox-python.git@main",
     "numpy",
     "scipy",
     "pyyaml",
