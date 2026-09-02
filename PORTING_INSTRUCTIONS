@@ -62,3 +62,7 @@ Run them with:
 ```bash
 python3 -m unittest discover -s tests
 ```
+
+CI runs that suite and `ruff check vhlib/ tests/` on every push and pull
+request. `requirements.txt` installs `vhlab-toolbox-python` straight from
+GitHub, since it is not on PyPI.

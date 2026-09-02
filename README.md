@@ -44,3 +44,12 @@ convention.
 ```bash
 python3 -m unittest discover -s tests
 ```
+
+Linting matches `vhlab-toolbox-python`; the configuration is in `ruff.toml`:
+
+```bash
+ruff check vhlib/ tests/
+```
+
+Both run in CI (`.github/workflows/ci.yml`) on every push and pull request,
+against Python 3.10, 3.11 and 3.12.
