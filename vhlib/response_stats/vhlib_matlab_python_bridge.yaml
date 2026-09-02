@@ -1,0 +1,76 @@
+# MATLAB -> Python bridge contract for the vhlib.response_stats package.
+#
+# Every module in this package must appear here, and every MATLAB function in
+# the corresponding MATLAB folder must appear here with a `status`.
+# See PORTING_INSTRUCTIONS for the convention and the status vocabulary.
+
+project_metadata:
+  bridge_version: "1.1"
+  matlab_repository: "https://github.com/VH-Lab/vhlab-library-matlab"
+  matlab_package_path: "AnalysisTools/ResponsesFitsIndexesPlotting/response_stats"
+  python_package: "vhlib.response_stats"
+  naming_policy: "Strict MATLAB Mirror"
+  indexing_policy: "Semantic Parity (1-based for user concepts, 0-based for internal data)"
+  coverage: "1 of 3 MATLAB functions in response_stats is ported."
+  notes: >
+    AnalysisTools/ResponsesFitsIndexesPlotting has eleven subfolders and no
+    natural single Python name, so its subfolders map to Python packages one
+    for one, keeping the MATLAB subfolder name: response_stats ->
+    vhlib/response_stats. This package was opened to answer the requirement
+    recorded in the top-level bridge file, that the NDI-python port of
+    ndi.app.oridirtuning needs neural_response_significance.
+
+functions:
+  - name: neural_response_significance
+    type: function
+    status: ported
+    matlab_path: "AnalysisTools/ResponsesFitsIndexesPlotting/response_stats/neural_response_significance.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: "vhlib/response_stats/neural_response_significance.py"
+    input_arguments:
+      - name: resp
+        type_matlab: "struct with fields curve, ind, spont, spontind, and optionally blankresp, blankind"
+        type_python: "dict with the same keys"
+    output_arguments:
+      - name: sigp
+        type_matlab: "double"
+        type_python: "float"
+      - name: sigpb
+        type_matlab: "double"
+        type_python: "float"
+    decision_log: >
+      MATLAB flattens resp.ind into a value vector plus a group-membership
+      vector and calls ANOVA1(...,'off'); the Python version passes the same
+      groups to scipy.stats.f_oneway, which is the same one-way F test and
+      returns the same p value. MATLAB's COLVEC (from vlt, not from this
+      repository) becomes reshape(-1). The blank condition is appended as one
+      additional group, exactly as MATLAB appends it as group
+      length(resp.ind)+1; when resp has no 'blankind', sigpb is sigp, as in
+      MATLAB's isfield check. Only 'ind' and 'blankind' are read; the other
+      documented fields of resp are ignored, as in MATLAB. Two error cases are
+      new: fewer than two groups, and an empty group, both of which MATLAB
+      would return NaN for rather than reject. This introduces the repository's
+      first dependency on scipy.
+
+  - name: neural_maxrate_variability
+    type: function
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/ResponsesFitsIndexesPlotting/response_stats/neural_maxrate_variability.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Maximum firing rate and its coefficient of variation across trials. Takes
+      the same `resp` structure as neural_response_significance and is a natural
+      companion port; no Python caller needs it yet.
+
+  - name: resampparams_MC
+    type: function
+    status: not_yet_ported
+    matlab_path: "AnalysisTools/ResponsesFitsIndexesPlotting/response_stats/resampparams_MC.m"
+    matlab_last_sync_hash: "cca1cce"
+    python_path: null
+    decision_log: >
+      Monte Carlo resampling of fit parameters. Takes a fitting function handle
+      as its first argument, so porting it means settling how MATLAB function
+      handles map to Python callables across this library; no Python caller
+      needs it yet.

@@ -1,3 +1,4 @@
 vhlab-toolbox-python
 numpy
+scipy
 pyyaml

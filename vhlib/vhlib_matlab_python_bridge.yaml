@@ -16,9 +16,9 @@ project_metadata:
   naming_policy: "Strict MATLAB Mirror"
   indexing_policy: "Semantic Parity (1-based for user concepts, 0-based for internal data)"
   coverage: >
-    1120 .m files in vhlab-library-matlab; 42 of them are ported, into 31 Python
+    1120 .m files in vhlab-library-matlab; 43 of them are ported, into 32 Python
     modules. Every one of the 1120 is accounted for below, per function in the
-    three ported areas and per area everywhere else.
+    ported areas and per area everywhere else.
 
 # Status vocabulary used by every bridge file in this repository.
 status_vocabulary:
@@ -44,6 +44,12 @@ subpackages:
     matlab_path: "StimulusDecoding"
     bridge_file: "vhlib/StimDecode/vhlib_matlab_python_bridge.yaml"
     coverage: "10 of 20 MATLAB functions ported."
+
+  - python_package: "vhlib.response_stats"
+    python_path: "vhlib/response_stats"
+    matlab_path: "AnalysisTools/ResponsesFitsIndexesPlotting/response_stats"
+    bridge_file: "vhlib/response_stats/vhlib_matlab_python_bridge.yaml"
+    coverage: "1 of 3 MATLAB functions ported."
 
   - python_package: "vhlib.md"
     python_path: "vhlib/md"
@@ -83,16 +89,22 @@ coverage_areas:
 
   - matlab_path: "AnalysisTools/ResponsesFitsIndexesPlotting"
     matlab_file_count: 96
-    status: not_yet_ported
+    status: partially_ported
+    python_path: "vhlib/response_stats"
     decision_log: >
-      HIGHEST-PRIORITY GAP. Response statistics, tuning-curve fits and index
-      calculations. `response_stats/neural_response_significance.m` is called by
-      ndi.app.oridirtuning and so is needed by the NDI-python port of that app;
-      it has no Python counterpart here or anywhere else in the Python family.
-      Locating it cost a search across four repositories, which is the concrete
-      failure this bridge convention exists to prevent. Port
-      neural_response_significance (with neural_maxrate_variability and
-      resampparams_MC, which sit alongside it) before the rest of this folder.
+      Response statistics, tuning-curve fits and index calculations. The folder
+      has eleven subfolders and no natural single Python name, so its subfolders
+      map to Python packages one for one, keeping the MATLAB subfolder name.
+      Only response_stats has been opened so far, for
+      neural_response_significance, which ndi.app.oridirtuning calls and the
+      NDI-python port of that app needs; see
+      vhlib/response_stats/vhlib_matlab_python_bridge.yaml. Locating that one
+      function cost a search across four repositories, which is the concrete
+      failure this bridge convention exists to prevent. The remaining 93 files
+      — color (49), oridir (16), temporal_frequency (7), contrast (6),
+      spatial_frequency (6), ocular_dominance (3), and six smaller subfolders —
+      are not_yet_ported; most of the oridir and spatial/temporal frequency
+      work has an NDI calculator equivalent, so check there before porting.
 
   - matlab_path: "SpikeDataExtraction"
     matlab_file_count: 388
@@ -208,7 +220,8 @@ downstream_requirements:
   - requested_by: "NDI-python port of ndi.app.oridirtuning"
     matlab_function: "neural_response_significance"
     matlab_path: "AnalysisTools/ResponsesFitsIndexesPlotting/response_stats/neural_response_significance.m"
-    status: not_yet_ported
+    status: ported
+    python_path: "vhlib/response_stats/neural_response_significance.py"
     decision_log: >
       NDI-matlab calls a handful of vhlab-library-matlab functions directly; the
       list is maintained by hand in

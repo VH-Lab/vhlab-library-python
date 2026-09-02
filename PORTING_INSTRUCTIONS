@@ -12,6 +12,7 @@ are decoded here and nowhere else, so keep this table current.
 | `AnalysisTools/CellDatabaseManagement/`  | `vhlib/CDM/`          |
 | `AnalysisTools/MeasuredData/`            | `vhlib/md/`           |
 | `StimulusDecoding/`                      | `vhlib/StimDecode/`   |
+| `AnalysisTools/ResponsesFitsIndexesPlotting/response_stats/` | `vhlib/response_stats/` |
 
 ## Bridge files
 
@@ -24,7 +25,8 @@ name is `<python package>_matlab_python_bridge.yaml`.
 - `vhlib/vhlib_matlab_python_bridge.yaml` — the folder mapping above, the status
   vocabulary, and a per-area decision for every part of vhlab-library-matlab,
   including the parts with no Python presence at all.
-- `vhlib/CDM/`, `vhlib/StimDecode/`, `vhlib/md/` — one file each, per function.
+- `vhlib/CDM/`, `vhlib/StimDecode/`, `vhlib/md/`, `vhlib/response_stats/` — one
+  file each, per function.
 
 Each function entry carries:
 

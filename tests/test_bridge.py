@@ -16,7 +16,8 @@ BRIDGE_NAME = 'vhlib_matlab_python_bridge.yaml'
 ROOT_BRIDGE = os.path.join(REPO_ROOT, 'vhlib', BRIDGE_NAME)
 
 # Packages that carry a function-level bridge file.
-FUNCTION_PACKAGES = ('vhlib/CDM', 'vhlib/StimDecode', 'vhlib/md')
+FUNCTION_PACKAGES = ('vhlib/CDM', 'vhlib/StimDecode', 'vhlib/md',
+                     'vhlib/response_stats')
 
 
 def load(path):
