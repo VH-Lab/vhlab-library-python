@@ -1,3 +1,8 @@
 __pycache__/
 *.pyc
 venv/
+
+# Build artifacts, now that the package builds (see pyproject.toml).
+build/
+dist/
+*.egg-info/
