@@ -300,9 +300,11 @@ functions:
     matlab_last_sync_hash: "cca1cce"
     python_path: null
     decision_log: >
-      Compares stimtimes.txt against stims.mat. getstimscript loads the file, but
-      this comparison walks the NewStim stimscript stored in it, which has no
-      Python representation yet.
+      Compares stimtimes.txt against stims.mat. It reads only MTI2{j}.stimid out
+      of the .mat — plain structs, never the stimscript — so it is not blocked on
+      NewStim, as earlier versions of this entry claimed. It takes a DIRSTRUCT and
+      walks every directory in an experiment; dirstruct is available in
+      vlt.file.dirstruct, so this is portable whenever a caller wants it.
 
   - name: findtransitionsSGSBL
     type: function
@@ -412,9 +414,15 @@ functions:
     matlab_last_sync_hash: "cca1cce"
     python_path: null
     decision_log: >
-      getstimscript plus clock synchronization. getstimscript itself is ported;
-      this one adds a sync record read through the NewStim object model, so it
-      stays blocked on that.
+      getstimscript plus clock synchronization. It makes no NewStim calls at all
+      — it is getstimscript followed by tpcorrectmti(mti, stimtimes.txt,
+      useglobal), and the stimscript is passed straight through — so an earlier
+      version of this entry was wrong to call it blocked on the NewStim object
+      model. What blocks it is tpcorrectmti, which has no definition in
+      vhlab-library-matlab, vhlab-toolbox-matlab, vhlab-NewStim-matlab or
+      NDI-matlab. The VH lab equivalent, vhlabcorrectmti, is ported here; decide
+      whether tpcorrectmti is FitzLab-era and vhlabcorrectmti should stand in for
+      it before porting this.
 
   - name: mti_from_stimtimes_txt
     type: function
